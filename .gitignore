@@ -1,0 +1,8 @@
+unused/
+.ipynb_checkpoints
+*.pyc
+ml/tmp
+ml/*.json
+ml/*.png
+ml/data_selftrunc/
+ml/test/

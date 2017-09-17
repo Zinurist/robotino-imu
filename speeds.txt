@@ -1,0 +1,7 @@
+recommended max. speeds for the robotino:
+
+velocity:	0.09
+-> speed is about 0.075 m/s
+angular:	0.3*PI
+-> speed is about 0.276*PI
+math.pi*2 needs 7.25 secs 
