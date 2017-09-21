@@ -22,7 +22,7 @@ class imu_listener:
     @param batch_size: batch size used for buffering imu data and then feeding it as a batch
     @param queue_size: how many outcomes of the RNN are buffered for a smoothed outcome
     """
-    def __init__(self, feed_fn, labels, batch_size=1, queue_size=1):
+    def __init__(self, feed_fn, labels, batch_size=1, queue_size=1, record=False):
         #RNN stuff
         self.feed_fn = feed_fn
         self.labels = labels
@@ -32,6 +32,8 @@ class imu_listener:
         self.res_queue = []
         self.hertz = [0]*50
         self.avg_hz = 0
+        self.record = record
+        if record: self.history = []
     
         #pygame for display and controls
         pygame.init()
@@ -97,7 +99,9 @@ class imu_listener:
             else:
                 res = self.feed_fn(self.batch)[0] #[0]?
             self.batch = []
-            
+
+            #save result with timestamp
+            if self.record: self.history.append((res,end))
             
         
             #draw info (only when batch is full)
@@ -108,8 +112,18 @@ class imu_listener:
             self.screen.blit(t2, (10,30))
             pygame.display.update()
 
-
-
+    
+    """
+    Save history if recorded to the given file.
+    """
+    def save_history(self, filename='history.dat'):
+        if not self.record:
+            print("History was not recorded")
+            return
+        f = open(filename, 'w')
+        for h in self.history:
+            f.write("%s %s\n" % (self.labels[h[0]], h[1]))
+        f.close()
 
 
 

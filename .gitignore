@@ -1,6 +1,10 @@
 unused/
 .ipynb_checkpoints
 *.pyc
+*.dat
+*.mp4
+*.avi
+*.MTS
 ml/tmp
 ml/*.json
 ml/*.png
