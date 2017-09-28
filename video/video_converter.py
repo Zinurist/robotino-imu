@@ -4,18 +4,32 @@ from subprocess import call
 import numpy as np
 from threading import Thread
 
-cap = cv2.VideoCapture("recording.MTS")
+#parameters
+num = 6
+
+if num == 0:
+    print('todo')
+if num == 5:
+    print('todo')
+if num == 6:
+    sync_time = 1506087647.00 #timestamp of sync
+    end_time = 60+30 #end secs in real video (-1 if all is to be used)
+    sync_time_real = 60+14 #secs in real video of sync
+    delay_secs = 5 #second before sync
+
+
+cap = cv2.VideoCapture("recording_%s.MTS" % num)
 w,h = (int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
 fps = int(cap.get(cv2.CAP_PROP_FPS))
 print(fps)
-fourcc = cv2.VideoWriter_fourcc(*'MJPG')
+fourcc = cv2.VideoWriter_fourcc(*'XVID')
 
-filename = 'recording_final'
+filename = 'recording_final_%s' % num
 out = cv2.VideoWriter('%s.avi' % filename, fourcc, fps, (w,h), isColor=True)
 
 
 #load labels
-f = open("history.dat", "r")
+f = open("history_%s.dat" % num, "r")
 history = []
 timedict = {}
 for line in f:
@@ -41,14 +55,13 @@ def get_label(index):
     #else most recent one
     return labels[2][0]
 
+    #labels = history[index-4:index+1]
+    #return max(set(labels), key=labels.count)[0]
+
 
 #find starting frame in cap
-sync_time = 1506005146.24 #timestamp of sync
-
-sync_time_real = 9 #secs in real video
 sync_frame = int(fps*sync_time_real) #frame in real video
 
-delay_secs = 1
 starting_frame = sync_frame - fps*delay_secs
 starting_time = sync_time - delay_secs
 
@@ -60,10 +73,12 @@ while count < starting_frame:
     count += 1
 
 current_time = starting_time
+if end_time > 0: end_time += starting_time
 
 while True:
     ret, frame = cap.read()
     if not ret: break
+    if end_time > 0 and current_time > end_time: break
     index = get_index_of(current_time)
     label = get_label(index)
     
@@ -77,7 +92,7 @@ print('Converting...')
 call(['avconv', '-i', '%s.avi'%filename, '-c:v', 'libx264', '-c:a', 
         'copy', '%s.mp4'%filename])
 call(['rm', '%s.avi'%filename])
-print("Recorded and converted")
+print("Rendered and converted")
 
 cap.release()
 
