@@ -231,8 +231,7 @@ class Samples:
     Adds the absolutes of all (original) values to the data. Should only be called before unroll/after convert_to_input.
     """
     def add_absolutes(self):
-        assert self.converted
-        assert not self.unrolled
+        assert self.converted and not self.unrolled
         DIM = self.input_dim_org
         self.input_dim += DIM
         for key in self.data:
@@ -247,8 +246,7 @@ class Samples:
     @param steps: window size for the moving average
     """                
     def add_moving_average(self, steps=10):
-        assert self.converted
-        assert not self.unrolled
+        assert self.converted and not self.unrolled
         DIM = self.input_dim_org
         self.input_dim += DIM
         for key in self.data:
@@ -303,9 +301,36 @@ class Samples:
     @param labels_data: the new labels_data list
     """
     def set_labels_data(self, labels_data):
-        assert self.converted
-        assert not self.unrolled
+        assert self.converted and not self.unrolled
         self.labels_data = labels_data
+    
+    
+    """
+    Flattens the data over time, to feed mutliple timesteps at once to the network. E.g. when size is 5, instead of feeding 6 dimensional vectors, vectors wih 6*5=30 values are fed.
+    Didn't seem to improve the networks peformance. Live demo doesn't work with this.
+    @param size: number of timesteps to flatten
+    """
+    def flatten_by(self, size):
+        assert self.converted and not self.unrolled
+        self.input_dim *= size
+        for key in self.data:
+            #new_samples = []
+            for i in range(len(self.data[key])):
+                sample = self.data[key][i]
+                labels = self.labels_data[key][i]
+                new_sample = []
+                new_labels = []
+                #first steps are ignored as they are less important
+                for s in range(len(sample)-size, -1, -size):
+                    vals = sample[s:s+size]
+                    new_sample.append([val for vec in vals for val in vec])
+                    #take first label
+                    new_labels.append(labels[s])
+                    
+                self.data[key][i] = new_sample
+                self.labels_data[key][i] = new_labels
+            
+            
         
 
     #make sequences of length steps out of samples
